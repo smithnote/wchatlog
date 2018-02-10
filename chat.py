@@ -58,7 +58,7 @@ class ChatLog(object):
         self.myself = self.friends[0]
 
     def start(self):
-        @self.bot.register(msg_types=wxpy.TEXT, except_self=False)
+        @self.bot.register(msg_types=[wxpy.TEXT, wxpy.SHARING], except_self=False)
         def save_text(msg):
             chat = msg.chat
             sender = msg.sender
