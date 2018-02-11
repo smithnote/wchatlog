@@ -103,7 +103,8 @@ class ChatLog(object):
             group_member = msg.member.name if isinstance(chat, wxpy.Group) else ''
             message_text = msg.text
             if msg.type == wxpy.PICTURE:
-                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_'+ sender.name
+                sender_name = group_member if group_member else sender.name
+                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_'+ sender_name
                 message_text += '_' + msg.raw['FileName'].replace('.png', '.jpeg')
                 download_task = DownloadTask(msg, message_text)
                 self.download_queue.put(download_task)
