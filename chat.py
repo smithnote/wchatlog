@@ -20,6 +20,10 @@ class MessageLog(object):
         self.ctime = ctime
         self.message = message
 
+    def __cmp__(self, other):
+        '''按时间大小排序, 时间小的先写入文件'''
+        return self.ctime > other.ctime
+
 
 class Writer(threading.Thread):
     def __init__(self, msg_queue):
@@ -76,7 +80,7 @@ class ChatLog(object):
         self.bot.join()
 
 if __name__ == '__main__':
-    msg_queue = queue.Queue(maxsize=1000)
+    msg_queue = queue.PriorityQueue(maxsize=1000)
     writer = Writer(msg_queue)
     writer.start()
     chatlog = ChatLog(msg_queue)
