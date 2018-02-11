@@ -33,20 +33,25 @@ class Writer(threading.Thread):
         friend_file = year + '/' + chat_name
         with open(friend_file, 'a+') as fp:
             fp.write('[' + ctime.strftime("%Y-%m-%d %H:%M:%S") + ']')
-            fp.write('[' + sname + "]")
             if group_mber:
+                fp.write('[' + chat_name + ']')
                 fp.write('[' + group_mber + ']')
+            else:
+                fp.write('[' + sname + "]")
             fp.write(':' + message + '\n')
             fp.flush()
 
     def run(self):
         while True:
             message_log = self.msg_queue.get()
-            self.write_to_file(message_log.chat_name,
-                               message_log.group_mber,
-                               message_log.sname,
-                               message_log.ctime,
-                               message_log.message)
+            try:
+                self.write_to_file(message_log.chat_name,
+                                   message_log.group_mber,
+                                   message_log.sname,
+                                   message_log.ctime,
+                                   message_log.message)
+            except Exception as e:
+                print("message write err:%s" % str(e))
 
 
 class ChatLog(object):
