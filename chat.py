@@ -11,6 +11,8 @@ import datetime
 import threading
 import wxpy
 
+from wxpy import TEXT, PICTURE, SHARING, RECORDING
+
 
 class DownloadTask(object):
     '''下载任务单元， msg为register中的msg'''
@@ -22,16 +24,20 @@ class DownloadTask(object):
 class Downloader(threading.Thread):
     def __init__(self, download_queue):
         self.download_queue = download_queue
-        self.image_dir = 'images/'
         super(Downloader, self).__init__()
+
+    def save_dir(self, string):
+        return string.split('/')[0]
 
     def download(self, task):
         year = datetime.datetime.now().strftime("%Y")
+        # save_text必须前缀保存文件夹。eg: image_dir/test_image.png
+        save_dir = self.save_dir(task.save_text)
         if not os.path.isdir(year):
             os.mkdir(year)
-        if not os.path.isdir(year + '/' + self.image_dir):
-            os.mkdir(year + '/' + self.image_dir)
-        task.msg.get_file( year + '/' + self.image_dir + task.save_text)
+        if not os.path.isdir(year + '/' + save_dir):
+            os.mkdir(year + '/' + save_dir)
+        task.msg.get_file(year + '/' + task.save_text)
 
     def run(self):
         while True:
@@ -95,20 +101,32 @@ class ChatLog(object):
         self.myself = self.friends[0]
 
     def start(self):
-        @self.bot.register(msg_types=[wxpy.TEXT, wxpy.SHARING, wxpy.PICTURE], except_self=False)
+        save_types = [TEXT, PICTURE, SHARING, RECORDING]
+        @self.bot.register(msg_types=save_types, except_self=False)
         def save_text(msg):
             chat = msg.chat
             sender = msg.sender
             ctime = msg.create_time
             group_member = msg.member.name if isinstance(chat, wxpy.Group) else ''
             message_text = msg.text
-            if msg.type == wxpy.PICTURE:
+
+            if msg.type == PICTURE:
                 sender_name = group_member if group_member else sender.name
                 message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_'+ sender_name
                 message_text += '_' + msg.raw['FileName'].replace('.png', '.jpeg')
+                message_text = 'images/' + message_text
                 download_task = DownloadTask(msg, message_text)
                 self.download_queue.put(download_task)
-                message_text = '![](' + message_text + ')'
+
+            if msg.type == RECORDING:
+                sender_name = group_member if group_member else sender.name
+                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_'+ sender_name
+                message_text += '_' + msg.raw['FileName']
+                message_text = 'recordings/' + message_text
+                download_task = DownloadTask(msg, message_text)
+                self.download_queue.put(download_task)
+
+            message_text = '![](' + message_text + ')'
             msg_log = MessageLog(chat.name, group_member,
                                  sender.name, ctime, message_text)
             self.msg_queue.put(msg_log)
