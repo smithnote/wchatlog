@@ -117,6 +117,7 @@ class ChatLog(object):
                 message_text = 'images/' + message_text
                 download_task = DownloadTask(msg, message_text)
                 self.download_queue.put(download_task)
+                message_text = '![](' + message_text + ')'
 
             if msg.type == RECORDING:
                 sender_name = group_member if group_member else sender.name
@@ -125,8 +126,8 @@ class ChatLog(object):
                 message_text = 'recordings/' + message_text
                 download_task = DownloadTask(msg, message_text)
                 self.download_queue.put(download_task)
+                message_text = '![](' + message_text + ')'
 
-            message_text = '![](' + message_text + ')'
             msg_log = MessageLog(chat.name, group_member,
                                  sender.name, ctime, message_text)
             self.msg_queue.put(msg_log)
