@@ -26,18 +26,23 @@ class Downloader(threading.Thread):
         self.download_queue = download_queue
         super(Downloader, self).__init__()
 
-    def save_dir(self, string):
+    def _save_dir(self, string):
         return string.split('/')[0]
+
+    def _remove_empty_file(self, path):
+        if os.path.exists(path) and not os.path.getsize(path):
+            os.remove(path)
 
     def download(self, task):
         year = datetime.datetime.now().strftime("%Y")
         # save_text必须前缀保存文件夹。eg: image_dir/test_image.png
-        save_dir = self.save_dir(task.save_text)
+        save_dir = self._save_dir(task.save_text)
         if not os.path.isdir(year):
             os.mkdir(year)
         if not os.path.isdir(year + '/' + save_dir):
             os.mkdir(year + '/' + save_dir)
         task.msg.get_file(year + '/' + task.save_text)
+        self._remove_empty_file(year + '/' + task.save_text)
 
     def run(self):
         while True:
@@ -112,7 +117,7 @@ class ChatLog(object):
 
             if msg.type == PICTURE:
                 sender_name = group_member if group_member else sender.name
-                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_'+ sender_name
+                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_' + sender_name
                 message_text += '_' + msg.raw['FileName'].replace('.png', '.jpeg')
                 message_text = 'images/' + message_text
                 download_task = DownloadTask(msg, message_text)
@@ -121,7 +126,7 @@ class ChatLog(object):
 
             if msg.type == RECORDING:
                 sender_name = group_member if group_member else sender.name
-                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_'+ sender_name
+                message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_' + sender_name
                 message_text += '_' + msg.raw['FileName']
                 message_text = 'recordings/' + message_text
                 download_task = DownloadTask(msg, message_text)
