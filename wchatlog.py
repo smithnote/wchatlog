@@ -113,10 +113,10 @@ class ChatLog(object):
             sender = msg.sender
             ctime = msg.create_time
             group_member = msg.member.name if isinstance(chat, wxpy.Group) else ''
+            sender_name = group_member if group_member else sender.name
             message_text = msg.text
 
             if msg.type == PICTURE:
-                sender_name = group_member if group_member else sender.name
                 message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_' + sender_name
                 message_text += '_' + msg.raw['FileName'].replace('.png', '.jpeg')
                 message_text = 'images/' + message_text
@@ -125,7 +125,6 @@ class ChatLog(object):
                 message_text = '![](' + message_text + ')'
 
             if msg.type == RECORDING:
-                sender_name = group_member if group_member else sender.name
                 message_text = ctime.strftime("%Y%m%d%H%M%S_") + chat.name + '_' + sender_name
                 message_text += '_' + msg.raw['FileName']
                 message_text = 'recordings/' + message_text
