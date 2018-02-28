@@ -7,6 +7,7 @@
 
 import os
 import queue
+import pytz
 import datetime
 import threading
 import wxpy
@@ -104,6 +105,10 @@ class ChatLog(object):
         self.bot.enable_puid()
         self.friends = [friend.name for friend in self.bot.friends()]
         self.myself = self.friends[0]
+        self.china_tz = pytz.timezone(pytz.country_timezones['CN'][0])
+
+    def _cn_datetime(self, timestamp):
+        return datetime.datetime.fromtimestamp(timestamp, self.china_tz)
 
     def start(self):
         save_types = [TEXT, PICTURE, SHARING, RECORDING]
@@ -111,7 +116,7 @@ class ChatLog(object):
         def save_text(msg):
             chat = msg.chat
             sender = msg.sender
-            ctime = msg.create_time
+            ctime = self._cn_datetime(msg.raw.get('CreateTime'))
             group_member = msg.member.name if isinstance(chat, wxpy.Group) else ''
             sender_name = group_member if group_member else sender.name
             message_text = msg.text
